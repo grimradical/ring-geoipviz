@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title></title>
+<style>
+
+path {
+  fill: #ECE8DE;
+  stroke: #999;
+  stroke-width: 0.5px;
+}
+
+svg {
+  background: #99B3CC;
+}
+
+circle {
+  fill: #DC4833;
+  stroke: #333;
+  stroke-width: 1.0px;
+}
+
+</style>
+<script src="http://d3js.org/d3.v2.js?2.9.1"></script>
+
+<svg width="960" height="500"></svg>
+<script>
+
+// Parse URL arguments
+function getParameter(paramName) {
+  var searchString = window.location.search.substring(1),
+      i, val, params = searchString.split("&");
+
+  for (i=0;i<params.length;i++) {
+    val = params[i].split("=");
+    if (val[0] == paramName) {
+      return unescape(val[1]);
+    }
+  }
+  return null;
+};
+
+var pollingInterval = getParameter("pollingInterval") || 60000;
+var target = getParameter("url") || "buffer";
+
+var proj = d3.geo.mercator();
+// Center the view
+proj.scale(1000);
+proj.translate([460,310]);
+
+var drawmap = function() {
+  d3.json("map-coords", function(collection) {
+    d3.select("svg").selectAll("path")
+        .data(collection.features)
+      .enter().append("path")
+        .attr("d", d3.geo.path().projection(proj));
+    update();
+  });
+}
+
+var plot = function(latitude, longitude) {
+ var translated = proj([longitude, latitude]);
+ var x = translated[0],
+     y = translated[1];
+ 
+  d3.select("svg").append('svg:circle')
+    .attr("cy", y)
+    .attr("cx", x)
+    .attr('r', 0.0001)
+    .transition()
+    .duration(1000)
+    .attr('r', 6)
+    .transition()
+    .delay(1000)
+    .duration(pollingInterval * 2)
+    .style('opacity', '0')
+    .remove();
+}
+
+var seen = (new Date()).getTime() - pollingInterval;
+
+var update = function() {
+  var url = target + "?seen=" + seen;
+  d3.json(url, function(json) {
+    seen = json["tstamp"];
+    json["items"].forEach(function(item) {
+      plot(item["location"]["latitude"], item["location"]["longitude"]);     
+    });
+  });
+};
+
+drawmap();
+setInterval(update, pollingInterval);
+
+</script>
