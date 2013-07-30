@@ -1,4 +1,4 @@
-(defproject grimradical/ring-geoipviz "0.1.0-SNAPSHOT"
+(defproject grimradical/ring-geoipviz "0.2.0-SNAPSHOT"
   :description "Ring middleware for computing and visualizing geoip information for clients"
   :url "http://github.com/grimradical/ring-geoipviz"
   :license {:name "Apache License 2.0"
